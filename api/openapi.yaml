@@ -7,6 +7,10 @@ info:
 tags:
   - name: post
     description: Методы для работы c постами
+  - name: like
+    description: Методы для работы с лайками
+  - name: comment
+    description: Методы для работы с комментариями
 paths:
   /api/v1/posts:
     post:
@@ -76,19 +80,22 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /api/v1/posts/{id}:
+  /api/v1/posts/{postId}:
     patch:
       tags:
         - post
       summary: Обновление поста
       operationId: updatePostUsingPATCH
       parameters:
-        - name: id
+        - name: postId
           in: path
+          description: Идентификатор поста
           required: true
           schema:
-            type: string
+            type:
+              string
             format: uuid
+            example: 79844885-e344-43fb-bfc3-2c82002633a7
       requestBody:
         required: true
         content:
@@ -112,12 +119,15 @@ paths:
       summary: Получение списка постов
       operationId: readPostByIdUsingGET
       parameters:
-        - name: id
+        - name: postId
           in: path
+          description: Идентификатор поста
           required: true
           schema:
-            type: string
+            type:
+              string
             format: uuid
+            example: 79844885-e344-43fb-bfc3-2c82002633a7
       responses:
         '200':
           description: OK
@@ -131,8 +141,186 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /api/v1/posts/{postId}/likes:
+    post:
+      tags:
+        - like
+      summary: Поставить лайк посту
+      operationId: createLikeUsingPOST
+      parameters:
+        - name: postId
+          in: path
+          description: Идентификатор поста
+          required: true
+          schema:
+            type:
+              string
+            format: uuid
+            example: 79844885-e344-43fb-bfc3-2c82002633a7
+      responses:
+        '201':
+          description: CREATED
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - like
+      summary: Удалить лайк с поста
+      description: Метод предназначен для удаления лайка с поста
+      parameters:
+        - name: postId
+          in: path
+          description: Идентификатор поста
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: 79844885-e344-43fb-bfc3-2c82002633a7
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/posts/{postId}/comments:
+    get:
+      tags:
+        - comment
+      summary: Получение комментариев поста
+      description: Метод предназначен для получения списка комментариев поста
+      operationId: readCommentsUsingGET
+      parameters:
+        - name: postId
+          in: path
+          description: Идентификатор поста
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: 79844885-e344-43fb-bfc3-2c82002633a7
+        - name: page
+          in: query
+          description: Номер страницы
+          required: false
+          schema:
+            type: integer
+            example: 0
+        - name: size
+          in: query
+          description: Количество элементов на странице
+          required: false
+          schema:
+            type: integer
+            example: 20
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadCommentsResponseDto'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - comment
+      summary:
+        Создание комментария к посту
+      description: Метод предназначен для создания комментария к посту
+      operationId: createCommentUsingPOST
+      parameters:
+        - name: postId
+          in: path
+          description: Идентификатор поста
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: 79844885-e344-43fb-bfc3-2c82002633a7
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCommentRequestDto'
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateCommentResponseDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/comments/{commentId}:
+    delete:
+      tags:
+        - comment
+      summary: Удаление комментария к посту
+      description: Метод предназначен для удаления комментария
+      operationId: deleteCommentUsingDELETE
+      parameters:
+        - name: commentId
+          in: path
+          description: Идентификатор комментария
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: 79844885-e344-43fb-bfc3-2c82002633a7
+      responses:
+         '204':
+            $ref: '#/components/responses/NoContent'
+         '404':
+            $ref: '#/components/responses/NotFound'
+         '500':
+            $ref: '#/components/responses/InternalServerError'
+
 components:
   schemas:
+    CreateCommentRequestDto:
+      description: Данные для создания комментария
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          description: Текст комментария
+          example: Очень красивое место для путешествия
+    CreateCommentResponseDto:
+      description: Данные о созданном комментарии
+      type: object
+      properties:
+        id:
+          description: Идентификатор комментария
+          type: string
+          format: uuid
+          example: 79844885-e344-43fb-bfc3-2c82002633a7
+        postId:
+          description: Идентификатор поста
+          type: string
+          format: uuid
+          example: 19844885-e344-43fb-bfc3-2c82002633a7
+        authorId:
+          description: Идентификатор атвора поста
+          type: string
+          format: uuid
+          example: 15844885-e344-43fb-bfc3-2c82002633a7
+        text:
+          type: string
+          description: Текст комментария
+          example: Очень красивое место для путешествия
+
     CreatePostRequestDto:
       description: Данные для создания поста
       type: object
@@ -236,14 +424,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ReadPostResponseDto'
-      page:
-        type: integer
-      size:
-        type: integer
-      totalElements:
-        type: integer
-      totalPages:
-        type: integer
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
     ReadPostResponseDto:
       description: Данные полученного поста
       properties:
@@ -313,6 +501,48 @@ components:
           description: Признак активности
           type: boolean
           example: true
+    ReadCommentsResponseDto:
+      description: Данные о комментариях к постам
+      type: object
+      properties:
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReadCommentResponseDto'
+        page:
+          type: integer
+          example: 0
+        size:
+          type: integer
+          example: 20
+        totalElements:
+          type: integer
+          example: 125
+        totalPages:
+          type: integer
+          example: 7
+    ReadCommentResponseDto:
+      description: Данные о комментарии к посту
+      properties:
+        id:
+          description: Идентификатор комментария
+          type: string
+          format: uuid
+          example: 79844885-e344-43fb-bfc3-2c82002633a7
+        postId:
+          description: Идентификатор поста
+          type: string
+          format: uuid
+          example: 22844885-e344-43fb-bfc3-2c82002633a7
+        authorId:
+          description: Идентификатор автора
+          type: string
+          format: uuid
+          example: 12844885-e344-43fb-bfc3-2c82002633a7
+        text:
+          description: Текст комментария
+          type: string
+          example: Комментарий
   responses:
     OK:
       description: Success
