@@ -1,0 +1,334 @@
+openapi: 3.0.3
+info:
+  title: social-network-system-design
+  description: Социальная сеть для путешественников
+  version: '${component.version}'
+
+tags:
+  - name: post
+    description: Методы для работы c постами
+paths:
+  /api/v1/posts:
+    post:
+      tags:
+        - post
+      summary: Создание поста
+      operationId: createPostUsingPOST
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePostRequestDto'
+      responses:
+        '201':
+          description: CREATED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatePostResponseDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      tags:
+        - post
+      summary: Получение списка постов
+      operationId: readAllPostsUsingGET
+      parameters:
+        - name: page
+          in: query
+          description: Номер страницы
+          required: false
+          schema:
+            type: integer
+            example: 0
+
+        - name: size
+          in: query
+          description: Размер страницы
+          required: false
+          schema:
+            type: integer
+            example: 20
+
+        - name: authorId
+          in: query
+          description: Фильтр по автору
+          required: false
+          schema:
+            type: string
+            format: uuid
+
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadPostsResponseDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/posts/{id}:
+    patch:
+      tags:
+        - post
+      summary: Обновление поста
+      operationId: updatePostUsingPATCH
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePostRequestDto'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdatePostResponseDto'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+    get:
+      tags:
+        - post
+      summary: Получение списка постов
+      operationId: readPostByIdUsingGET
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadPostByIdResponseDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+components:
+  schemas:
+    CreatePostRequestDto:
+      description: Данные для создания поста
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          description: Текст поста
+          type: string
+          example: Путешествие по Австралии
+        latitude:
+          description: Широта места путешествия
+          type: number
+          format: double
+          example: 47.4979
+        longitude:
+          description: Долгота места путешествия
+          type: number
+          format: double
+          example: 19.0402
+        imageUrls:
+          description: Изображения к посту
+          type: array
+          items:
+            type: string
+          example: "https://cdn.app.com/images/коала.jpg"
+    CreatePostResponseDto:
+      description: Данные созданного поста
+      type: object
+      properties:
+        id:
+          description: Идентификатор созданного поста
+          type: string
+          format: uuid
+          example: 0479e0b1-b250-4d1e-b5f2-a7c2c54e3414
+    UpdatePostRequestDto:
+      description: Данные для обновления постами
+      type: object
+      properties:
+        text:
+          description: Текст поста
+          type: string
+          example: Путешествие по Австралии
+        latitude:
+          description: Широта места путешествия
+          type: number
+          format: double
+          example: 47.4979
+        longitude:
+          description: Долгота места путешествия
+          type: number
+          format: double
+          example: 19.0402
+        imageUrls:
+          description: Изображения к посту
+          type: array
+          items:
+            type: string
+          example: "https://cdn.app.com/images/коала.jpg"
+    UpdatePostResponseDto:
+      description: Данные обновленного поста
+      properties:
+        id:
+          description: Идентификатор поста
+          type: string
+          format: uuid
+          example: 2679e0b1-b250-4d1e-b5f2-a7c2c54e3414
+        authorId:
+          description: Идентификатор автора поста
+          type: string
+          format: uuid
+          example: 1679e0b1-b250-4d1e-b5f2-a7c2c54e3414
+        text:
+          description: Текст поста
+          type: string
+          example: Расскажу о больших и милых коалах
+        latitude:
+          description: Широта места путешествия
+          type: number
+          format: double
+          example: 47.4979
+        longitude:
+          description: Долгота места путешествия
+          type: number
+          format: double
+          example: 19.0402
+        imageUrls:
+          description: Изображения к посту
+          type: array
+          items:
+            type: string
+          example: "https://cdn.app.com/images/коала.jpg"
+        active:
+          description: Признак активности
+          type: boolean
+          example: true
+    ReadPostsResponseDto:
+      description: Данные полученных постов
+      properties:
+        posts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReadPostResponseDto'
+      page:
+        type: integer
+      size:
+        type: integer
+      totalElements:
+        type: integer
+      totalPages:
+        type: integer
+    ReadPostResponseDto:
+      description: Данные полученного поста
+      properties:
+        id:
+          description: Идентификатор поста
+          type: string
+          format: uuid
+          example: 2679e0b1-b250-4d1e-b5f2-a7c2c54e3414
+        authorId:
+          description: Идентификатор автора поста
+          type: string
+          format: uuid
+          example: 1679e0b1-b250-4d1e-b5f2-a7c2c54e3414
+        text:
+          description: Текст поста
+          type: string
+          example: Расскажу о больших и милых коалах
+        latitude:
+          description: Широта места путешествия
+          type: number
+          format: double
+          example: 47.4979
+        longitude:
+          description: Долгота места путешествия
+          type: number
+          format: double
+          example: 19.0402
+        imageUrls:
+          description: Изображения к посту
+          type: array
+          items:
+            type: string
+          example: "https://cdn.app.com/images/коала.jpg"
+        active:
+          description: Признак активности
+          type: boolean
+          example: true
+    ReadPostByIdResponseDto:
+      description: Данные полученного поста
+      properties:
+        authorId:
+          description: Идентификатор автора поста
+          type: string
+          format: uuid
+          example: 1679e0b1-b250-4d1e-b5f2-a7c2c54e3414
+        text:
+          description: Текст поста
+          type: string
+          example: Расскажу о больших и милых коалах
+        latitude:
+          description: Широта места путешествия
+          type: number
+          format: double
+          example: 47.4979
+        longitude:
+          description: Долгота места путешествия
+          type: number
+          format: double
+          example: 19.0402
+        imageUrls:
+          description: Изображения к посту
+          type: array
+          items:
+            type: string
+          example: "https://cdn.app.com/images/коала.jpg"
+        active:
+          description: Признак активности
+          type: boolean
+          example: true
+  responses:
+    OK:
+      description: Success
+    CREATED:
+      description: Created
+    BadRequest:
+      description: Bad Request Error
+    Forbidden:
+      description: Forbidden Error
+    NotFound:
+      description: Not Found Error
+    UnprocessableEntity:
+      description: Unprocessable Entity Error
+    InternalServerError:
+      description: Internal Server Error
+    BadGateway:
+      description: Bad Gateway
+    NoContent:
+      description: No Content
