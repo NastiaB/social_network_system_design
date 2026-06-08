@@ -13,6 +13,8 @@ tags:
     description: Методы для работы с комментариями
   - name: follow
     description: Методы для работы с функционалом подписания
+  - name: feed
+    description: Методы для работы с лентой
 paths:
   /api/v1/posts:
     post:
@@ -279,12 +281,12 @@ paths:
             format: uuid
             example: 79844885-e344-43fb-bfc3-2c82002633a7
       responses:
-         '204':
-            $ref: '#/components/responses/NoContent'
-         '404':
-            $ref: '#/components/responses/NotFound'
-         '500':
-            $ref: '#/components/responses/InternalServerError'
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /api/v1/customers/{customerId}/follow:
     post:
       tags:
@@ -300,9 +302,14 @@ paths:
             format: uuid
             example: 79844885-e344-43fb-bfc3-2c82002633a7
       responses:
-       '200':
-         description: OK
-
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     delete:
       tags:
         - follow
@@ -319,9 +326,112 @@ paths:
       responses:
         '204':
           description: Подписка удалена
-
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      tags:
+        - follow
+      summary: Получить подписчиков пользователя
+      parameters:
+        - name: customerId
+          in: path
+          description: Идентификатор пользователя
+          required: true
+          schema:
+          type: string
+          format: uuid
+          example: 79844885-e344-43fb-bfc3-2c82002633a7
+        - name: page
+          in: query
+          description: Номер страницы
+          required: false
+          schema:
+            type: integer
+            example: 0
+        - name: size
+          in: query
+          description: Количество элементов на странице
+          required: false
+          schema:
+            type: integer
+            example: 20
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadFollowersResponseDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/customers/{customerId}/feed:
+    get:
+      tags:
+        - feed
+    summary: Возвращает все посты пользователя
+    parameters:
+      - name: customerId
+        in: path
+        description: Идентификатор пользователя
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: 79844885-e344-43fb-bfc3-2c82002633a7
+      - name: page
+        in: query
+        description: Номер страницы
+        required: false
+        schema:
+          type: integer
+          example: 0
+      - name: size
+        in: query
+        description: Количество элементов на странице
+        required: false
+        schema:
+          type: integer
+          example: 20
+    responses:
+      '200':
+        description: Лента пользователя
+        content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/ReadFeedResponseDto'
+      '400':
+        $ref: '#/components/responses/BadRequest'
+      '404':
+        $ref: '#/components/responses/NotFound'
+      '500':
+        $ref: '#/components/responses/InternalServerError'
 components:
   schemas:
+    ReadFollowersResponseDto:
+      description: Данные о подписчиках пользователя
+      type: object
+      properties:
+        customers:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomerSummaryDto'
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+          example: 135
     CreateCommentRequestDto:
       description: Данные для создания комментария
       type: object
@@ -355,7 +465,14 @@ components:
           type: string
           description: Текст комментария
           example: Очень красивое место для путешествия
-
+    ReadFeedResponseDto:
+      description: Лента пользователя
+      type: object
+      properties:
+         content:
+           type: array
+           items:
+             $ref: '#/components/schemas/ReadPostResponseDto'
     CreatePostRequestDto:
       description: Данные для создания поста
       type: object
@@ -578,6 +695,23 @@ components:
           description: Текст комментария
           type: string
           example: Комментарий
+    CustomerSummaryDto:
+      description: Информация о пользователе
+      type: object
+      properties:
+        id:
+          description: Идентификатор пользователя
+          type: string
+          format: uuid
+          example: 12844885-e344-43fb-bfc3-2c82002633a7
+        userName:
+          description: Имя пользователя
+          type: string
+          example: Любитель_Австралии_2000
+        avatarUrl:
+          description: Аватар пользователя
+          type: string
+          example: "http://cdn.ru/avatar.png"
   responses:
     OK:
       description: Success
