@@ -11,6 +11,8 @@ tags:
     description: Методы для работы с лайками
   - name: comment
     description: Методы для работы с комментариями
+  - name: follow
+    description: Методы для работы с функционалом подписания
 paths:
   /api/v1/posts:
     post:
@@ -59,9 +61,9 @@ paths:
             type: integer
             example: 20
 
-        - name: authorId
+        - name: customerId
           in: query
-          description: Фильтр по автору
+          description: Фильтр по клиенту (автору)
           required: false
           schema:
             type: string
@@ -116,7 +118,7 @@ paths:
     get:
       tags:
         - post
-      summary: Получение списка постов
+      summary: Получение поста по идентификатору
       operationId: readPostByIdUsingGET
       parameters:
         - name: postId
@@ -141,7 +143,6 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /api/v1/posts/{postId}/likes:
     post:
       tags:
         - like
@@ -284,6 +285,40 @@ paths:
             $ref: '#/components/responses/NotFound'
          '500':
             $ref: '#/components/responses/InternalServerError'
+  /api/v1/customers/{customerId}/follow:
+    post:
+      tags:
+        - follow
+      summary: Подписаться на пользователя
+      parameters:
+        - name: customerId
+          in: path
+          description: Идентификатор пользователя
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: 79844885-e344-43fb-bfc3-2c82002633a7
+      responses:
+       '200':
+         description: OK
+
+    delete:
+      tags:
+        - follow
+      summary: Отписаться от пользователя
+      parameters:
+        - name: customerId
+          in: path
+          description: Идентификатор пользователя
+          required: true
+          schema:
+          type: string
+          format: uuid
+          example: 79844885-e344-43fb-bfc3-2c82002633a7
+      responses:
+        '204':
+          description: Подписка удалена
 
 components:
   schemas:
@@ -311,8 +346,8 @@ components:
           type: string
           format: uuid
           example: 19844885-e344-43fb-bfc3-2c82002633a7
-        authorId:
-          description: Идентификатор атвора поста
+        customerId:
+          description: Идентификатор пользователя (автора поста)
           type: string
           format: uuid
           example: 15844885-e344-43fb-bfc3-2c82002633a7
@@ -388,8 +423,8 @@ components:
           type: string
           format: uuid
           example: 2679e0b1-b250-4d1e-b5f2-a7c2c54e3414
-        authorId:
-          description: Идентификатор автора поста
+        customerId:
+          description: Идентификатор пользователя (автора поста)
           type: string
           format: uuid
           example: 1679e0b1-b250-4d1e-b5f2-a7c2c54e3414
@@ -440,8 +475,8 @@ components:
           type: string
           format: uuid
           example: 2679e0b1-b250-4d1e-b5f2-a7c2c54e3414
-        authorId:
-          description: Идентификатор автора поста
+        customerId:
+          description: Идентификатор пользователя (автора поста)
           type: string
           format: uuid
           example: 1679e0b1-b250-4d1e-b5f2-a7c2c54e3414
@@ -472,8 +507,8 @@ components:
     ReadPostByIdResponseDto:
       description: Данные полученного поста
       properties:
-        authorId:
-          description: Идентификатор автора поста
+        customerId:
+          description: Идентификатор пользователя (автора поста)
           type: string
           format: uuid
           example: 1679e0b1-b250-4d1e-b5f2-a7c2c54e3414
@@ -534,8 +569,8 @@ components:
           type: string
           format: uuid
           example: 22844885-e344-43fb-bfc3-2c82002633a7
-        authorId:
-          description: Идентификатор автора
+        customerId:
+          description: Идентификатор пользователя (автора поста)
           type: string
           format: uuid
           example: 12844885-e344-43fb-bfc3-2c82002633a7
