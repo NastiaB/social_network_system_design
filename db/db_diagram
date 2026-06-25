@@ -1,0 +1,90 @@
+Для отображения модели данных использовать dbdiagram.io
+
+Table customer {
+id uuid [pk]
+username varchar(100) [not null, unique]
+avatar_url varchar(500)
+created_at timestamp [not null]
+
+Note: 'Пользователь системы'
+}
+
+Table place {
+id uuid [pk]
+name varchar(255) [not null]
+country varchar(255)
+latitude decimal(9,6) [not null]
+longitude decimal(9,6) [not null]
+created_at timestamp [not null]
+
+Note: 'Место путешествия'
+}
+
+Table post {
+id uuid [pk]
+customer_id uuid [not null]
+place_id uuid [not null]
+text text [not null]
+active boolean [not null, default: true]
+created_at timestamp [not null]
+updated_at timestamp
+
+Note: 'Пост о путешествии'
+}
+
+Table post_image {
+id uuid [pk]
+post_id uuid [not null]
+image_url varchar(500) [not null]
+created_at timestamp [not null]
+
+Note: 'Изображения поста'
+}
+
+Table comment {
+id uuid [pk]
+post_id uuid [not null]
+customer_id uuid [not null]
+text text [not null]
+created_at timestamp [not null]
+
+Note: 'Комментарии к посту'
+}
+
+Table post_like {
+post_id uuid [not null]
+customer_id uuid [not null]
+created_at timestamp [not null]
+
+Note: 'Лайки постов'
+
+indexes {
+(post_id, customer_id) [unique]
+}
+}
+
+Table customer_follow {
+follower_id uuid [not null]
+following_id uuid [not null]
+created_at timestamp [not null]
+
+Note: 'Подписки пользователей'
+
+indexes {
+(follower_id, following_id) [unique]
+}
+}
+
+Ref: post.customer_id > customer.id
+Ref: post.place_id > place.id
+
+Ref: post_image.post_id > post.id
+
+Ref: comment.post_id > post.id
+Ref: comment.customer_id > customer.id
+
+Ref: post_like.post_id > post.id
+Ref: post_like.customer_id > customer.id
+
+Ref: customer_follow.follower_id > customer.id
+Ref: customer_follow.following_id > customer.id
