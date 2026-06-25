@@ -225,4 +225,85 @@ Traffic = RPS * avg_request_size
 Трафик: 174 × 50 KB = 8700 KB/s ≈ 8.5 MB/s
 Пиковый трафик: 1215 × 50 KB = 60750 KB/s ≈ 59.3 MB/s
 
----
+--- 
+# ОЦЕНКА ДИСКОВ 
+
+## Подсистема постов
+### Размер записи
+
+| Поле | Размер |
+|------|--------|
+| текст + метаданные | 2 KB |
+
+```text
+Capacity_posts = 2 000 000 × 365 × 2 KB = 1.46 TB
+Disks_for_capacity = 1.46 TB / 30 TB = 0.05
+
+Throughput_posts = ~2 000 000 posts/day × 2 KB / 86 400 ≈ 0.05 MB/s
+Disks_for_throughput = 0.05 MB/s / 3 072 MB/s ≈ 0.00002
+
+IOPS_posts = ~23 RPS
+Disks_for_iops = 23 / 10 000 = 0.002
+
+Disks_posts = max(ceil(0.05), ceil(0.00002), ceil(0.002)) = 1
+```
+## Подсистема изображений
+
+### допущения
+
+- в среднем: **3 изображения на пост**
+- средний размер изображения: **3 MB**
+- чтение изображений происходит через CDN 
+
+- размер 1 поста с изображениями: 3 × 3 MB = 9 MB
+
+```text
+Capacity_images = 730 000 000 × 9 MB = 6.4 PB
+Disks_for_capacity = 6 400 TB / 32 TB = 200
+Disks_for_throughput = 1 620 MB/s / 100 MB/s = 16.2
+IOPS_images = 180 / 100 = 1.8
+Disks_images = max(ceil(200), ceil(16.2), ceil(1.8)) = 200
+```
+
+## Подсистема лайков
+Размер записи: 64 bytes
+
+```text
+Capacity_likes = 5 475 000 000 × 64 B = 350 GB
+Disks_for_capacity = 0.35 TB / 30 TB = 0.012
+
+Throughput_likes = 174 RPS × 0.5 KB ≈ 0.085 MB/s
+Disks_for_throughput = 0.085 MB/s / 3 072 MB/s ≈ 0.00003
+
+IOPS_likes = 174 / 10 000 = 0.017
+
+Disks_likes = max(ceil(0.012), ceil(0.00003), ceil(0.017)) = 1
+```
+
+## Подсистема комментариев
+Размер записи: 300 bytes
+```text
+Capacity_comments = 1 095 000 000 × 300 B = 306 GB
+Disks_for_capacity = 0.306 TB / 30 TB = 0.01
+
+Throughput_comments = 35 RPS × 2 KB ≈ 0.07 MB/s
+Disks_for_throughput = 0.07 MB/s / 3 072 MB/s ≈ 0.00002
+
+IOPS_comments = 35 / 10 000 = 0.0035
+
+Disks_comments = max(ceil(0.01), ceil(0.00002), ceil(0.0035)) = 1
+```
+
+## Итоговый объем хранения
+```text
+Disks_total =
+Posts: 1
+Images: 200
+Likes: 1
+Comments: 1
+
+Total = 203 disks
+```
+Images (S3 storage) → HDD
+
+PostgreSQL (core DB) → SSD NVMe
